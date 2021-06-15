@@ -31,7 +31,6 @@ void MainWindow::stop_server()
 
 void MainWindow::accept_new_connection()
 {
-    std::cout << "Pop !" << std::endl;
     if(server.hasPendingConnections())
     {
         QTcpSocket *socket = server.nextPendingConnection();
