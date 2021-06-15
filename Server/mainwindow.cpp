@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    stop_server();
     delete ui;
 }
 
@@ -20,6 +21,7 @@ void MainWindow::start_server()
 {
     server.listen(QHostAddress::Any, PORT);
     std::cout << server.errorString().toStdString() << std::endl;
+    std::cout << "test" << std::endl;
 }
 
 void MainWindow::stop_server()
@@ -29,10 +31,13 @@ void MainWindow::stop_server()
 
 void MainWindow::accept_new_connection()
 {
+    std::cout << "Pop !" << std::endl;
     if(server.hasPendingConnections())
     {
         QTcpSocket *socket = server.nextPendingConnection();
+        socket->close();
 
+        std::cout << "Connected !" << std::endl;
     }
 }
 
