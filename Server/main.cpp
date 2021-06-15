@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     w.start_server();
 
     w.connect(&w.server, &QTcpServer::newConnection, &w, &MainWindow::accept_new_connection);
+    system("pause");
 
     return a.exec();
 }
