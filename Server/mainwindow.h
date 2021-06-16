@@ -5,6 +5,8 @@
 #include <QtNetwork/QSctpServer>
 #include <QtNetwork/QTcpSocket>
 
+#include <vector>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -24,6 +26,9 @@ public:
     void start_server();
     void stop_server();
     void accept_new_connection();
+
+    std::vector<QTcpSocket*> connections;   // list of connected peers
+    int connected;                          // count of connected peers
 
 private:
     Ui::MainWindow *ui;
