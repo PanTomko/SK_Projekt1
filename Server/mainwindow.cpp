@@ -27,13 +27,21 @@ void MainWindow::start_server()
 void MainWindow::stop_server()
 {
     server.close();
+
+    for(auto & x : connections){
+        x->close();
+    }
 }
+
 
 void MainWindow::accept_new_connection()
 {
     if(server.hasPendingConnections())
     {
         QTcpSocket *socket = server.nextPendingConnection();
-        socket->close();
+        std::cout << "peer : " << socket->socketDescriptor() << " connected !" << std::endl;
+
+        connected++;
+        connections.push_back( socket );
     }
 }
