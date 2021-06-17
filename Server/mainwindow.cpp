@@ -22,7 +22,7 @@ void MainWindow::start_server()
 {
     server.listen(QHostAddress::Any, PORT);
     std::cout << server.errorString().toStdString() << std::endl;
-    std::cout << "test" << std::endl;
+    std::cout << "Server start" << std::endl;
 }
 
 void MainWindow::stop_server()
