@@ -30,8 +30,8 @@ void MainWindow::stop_server()
     server.close();
 
     for(auto & x : connections){
-        x->close();
-        delete x;
+        x->socket->close();
+        delete x->socket;
     }
 }
 
@@ -39,15 +39,15 @@ void MainWindow::accept_new_connection()
 {
     if(server.hasPendingConnections())
     {
-        QTcpSocket *socket = server.nextPendingConnection();
-        socket->setObjectName( QString::number(socket->socketDescriptor()) );
+        Client *client = new Client{server.nextPendingConnection()};
+        client->socket->setObjectName( QString::number(client->socket->socketDescriptor()) );
 
-        std::cout << "peer : " << socket->objectName().toStdString() << " connected !" << std::endl;
+        std::cout << "peer : " << client->socket->objectName().toStdString() << " connected !" << std::endl;
 
-        connect( socket, &QAbstractSocket::disconnected, this, &MainWindow::on_peer_disconnect );
+        connect( client->socket, &QAbstractSocket::disconnected, this, &MainWindow::on_peer_disconnect );
 
         connected++;
-        connections.push_back( socket );
+        connections.push_back( client );
     }
 }
 
@@ -58,7 +58,11 @@ void MainWindow::on_peer_disconnect()
     std::cout << "peer : " << socket->objectName().toStdString() << " disconnected !" << std::endl;
 
     connected--;
-    connections.erase( std::find_if(connections.begin(), connections.end(), [=]( auto x){ return x->objectName() == socket->objectName();} ));
+
+    auto it = std::find_if(connections.begin(), connections.end(), [=]( auto x){ return x->socket->objectName() == socket->objectName();} );
 
     delete socket;
+    delete  *it;
+
+    connections.erase( it );
 }

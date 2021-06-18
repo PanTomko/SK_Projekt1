@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "client.h"
+
 #include <QMainWindow>
 #include <QtNetwork/QSctpServer>
 #include <QtNetwork/QTcpSocket>
@@ -25,10 +27,11 @@ public:
 
     void start_server();
     void stop_server();
+
     void accept_new_connection();
     void on_peer_disconnect();
 
-    std::vector<QTcpSocket*> connections;   // list of connected peers
+    std::vector<Client*> connections;   // list of connected peers
     int connected;                          // count of connected peers
 
 private:
