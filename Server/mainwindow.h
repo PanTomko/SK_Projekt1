@@ -29,8 +29,9 @@ public:
 
     std::vector<QTcpSocket*> connections;   // list of connected peers
     int connected;                          // count of connected peers
-
+    std::vector<std::string> file_list;
 private:
     Ui::MainWindow *ui;
+    bool delete_file(char filename[]);
 };
 #endif // MAINWINDOW_H

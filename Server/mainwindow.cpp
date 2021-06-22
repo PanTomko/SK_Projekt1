@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <cstdio>
+#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -43,5 +45,21 @@ void MainWindow::accept_new_connection()
 
         connected++;
         connections.push_back( socket );
+    }
+}
+
+bool MainWindow::delete_file(char filename[])
+{
+    char path[65] = "E:\\Rest\\Drive\\";
+    strcat(path, filename);
+
+    if (remove(path) != 0){
+        perror("File deletion failed");
+        return false;
+    }
+    else {
+        file_list.erase(std::remove(file_list.begin(), file_list.end(), filename), file_list.end());
+        std::cout << "File deleted successfully";
+        return true;
     }
 }
