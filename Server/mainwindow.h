@@ -8,6 +8,7 @@
 #include <QtNetwork/QTcpSocket>
 
 #include <vector>
+#include <thread>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -31,6 +32,7 @@ public:
     void accept_new_connection();
     void on_peer_disconnect();
 
+    std::vector<std::thread> peer_thread;
     std::vector<Client*> connections;   // list of connected peers
     int connected;                          // count of connected peers
 

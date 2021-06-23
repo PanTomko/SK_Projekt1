@@ -30,8 +30,6 @@ void MainWindow::stop_server()
     server.close();
 
     for(auto & x : connections){
-        x->socket->close();
-        delete x->socket;
         delete x;
     }
 }
@@ -42,6 +40,7 @@ void MainWindow::accept_new_connection()
     {
         Client *client = new Client{server.nextPendingConnection()};
         client->socket->setObjectName( QString::number(client->socket->socketDescriptor()) );
+        client->th = new std::thread( &Client::run, client );
 
         std::cout << "peer : " << client->socket->objectName().toStdString() << " connected !" << std::endl;
 
@@ -62,7 +61,6 @@ void MainWindow::on_peer_disconnect()
 
     auto it = std::find_if(connections.begin(), connections.end(), [=]( auto x){ return x->socket->objectName() == socket->objectName();} );
 
-    delete socket;
     delete  *it;
 
     connections.erase( it );
