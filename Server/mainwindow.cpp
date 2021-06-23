@@ -83,6 +83,7 @@ void MainWindow::run_client(Client *client)
         for(auto & bc : client->broadcast_list )
         {
             client->socket->write(bc, sizeof(bc));
+            client->socket->waitForReadyRead(); // let client process msg form client is not important
         }
     }
 }

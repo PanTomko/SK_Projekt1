@@ -28,7 +28,10 @@ public:
     SOCKET sock;
 
     std::mutex active_transmition;
-    std::thread *th; // for idle server connection
+
+    SOCKET read_socket;             // socket for idle connection
+    std::thread *th;                // for idle server connection
+
     bool is_running(){ return _running; }
 
     void connect_to_server();
@@ -36,6 +39,7 @@ public:
     void set_list_of_files( const std::vector<std::string>& file_list );
 
     void disconnect_form_server();
+    void set_current_file_list();
 
 public slots:
     void upload_file();
