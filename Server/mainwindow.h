@@ -26,6 +26,7 @@ public:
     void start_server();
     void stop_server();
     void accept_new_connection();
+    void on_peer_disconnect();
 
     std::vector<QTcpSocket*> connections;   // list of connected peers
     int connected;                          // count of connected peers
