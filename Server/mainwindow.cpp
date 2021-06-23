@@ -72,15 +72,25 @@ void MainWindow::run_client(Client *client)
     {
         QByteArray data = client->socket->read(16);
 
-
         if(!data.isEmpty())
         {
-            std::cout << data.count() << " : data :" << data.data() << std::endl;
+            if(!strcmp(data.data(), "UP")) tokenH_upload_file(client);
+            else if(!strcmp(data.data(), "DEL")) tokenH_delete_file(client);
+            else if(!strcmp(data.data(), "DOWN")) tokenH_download_file(client);
+            else std::cout << "wrong token : " << data.data() << std::endl;
         }
 
         for(auto & bc : client->broadcast_list )
         {
-            // TODO : implement broadcast
+            client->socket->write(bc, sizeof(bc));
         }
     }
 }
+
+void MainWindow::tokenH_upload_file(const Client *client)
+{
+    std::cout << "Upload form : "<< client->socket->socketDescriptor() << std::endl;
+}
+
+void MainWindow::tokenH_delete_file(const Client *client){}
+void MainWindow::tokenH_download_file(const Client *client){}

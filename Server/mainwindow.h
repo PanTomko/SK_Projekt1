@@ -33,6 +33,10 @@ public:
     void on_peer_disconnect();
     void run_client(Client *client);
 
+    void tokenH_upload_file(const Client *client);
+    void tokenH_delete_file(const Client *client);
+    void tokenH_download_file(const Client *client);
+
     std::vector<std::thread> peer_thread;
     std::vector<Client*> connections;   // list of connected peers
     int connected;                          // count of connected peers
