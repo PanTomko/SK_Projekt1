@@ -39,16 +39,23 @@ void MainWindow::accept_new_connection()
     if(server.hasPendingConnections())
     {
         Client *client = new Client{server.nextPendingConnection()};
+        std::cout << "peer : " << client->socket->objectName().toStdString() << " connected !" << std::endl;
+
         client->socket->setObjectName( QString::number(client->socket->socketDescriptor()) );
         client->th = new std::thread( &MainWindow::run_client, this, client );
 
-        std::cout << "peer : " << client->socket->objectName().toStdString() << " connected !" << std::endl;
+        upload_current_file_list(client);
 
         connect( client->socket, &QAbstractSocket::disconnected, this, &MainWindow::on_peer_disconnect );
 
         connected++;
         connections.push_back( client );
     }
+}
+
+void MainWindow::upload_current_file_list(Client *client)
+{
+
 }
 
 void MainWindow::on_peer_disconnect()

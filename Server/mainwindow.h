@@ -30,6 +30,7 @@ public:
     void stop_server();
 
     void accept_new_connection();
+    void upload_current_file_list(Client *client);
     void on_peer_disconnect();
     void run_client(Client *client);        // handle client in thread
 
