@@ -30,7 +30,6 @@ void MainWindow::stop_server()
     server.close();
 
     for(auto & x : connections){
-        x->close();
         delete x;
     }
 }
@@ -39,16 +38,24 @@ void MainWindow::accept_new_connection()
 {
     if(server.hasPendingConnections())
     {
-        QTcpSocket *socket = server.nextPendingConnection();
-        socket->setObjectName( QString::number(socket->socketDescriptor()) );
+        Client *client = new Client{server.nextPendingConnection()};
+        std::cout << "peer : " << client->socket->objectName().toStdString() << " connected !" << std::endl;
 
-        std::cout << "peer : " << socket->objectName().toStdString() << " connected !" << std::endl;
+        client->socket->setObjectName( QString::number(client->socket->socketDescriptor()) );
+        client->th = new std::thread( &MainWindow::run_client, this, client );
 
-        connect( socket, &QAbstractSocket::disconnected, this, &MainWindow::on_peer_disconnect );
+        upload_current_file_list(client);
+
+        connect( client->socket, &QAbstractSocket::disconnected, this, &MainWindow::on_peer_disconnect );
 
         connected++;
-        connections.push_back( socket );
+        connections.push_back( client );
     }
+}
+
+void MainWindow::upload_current_file_list(Client *client)
+{
+
 }
 
 void MainWindow::on_peer_disconnect()
@@ -58,7 +65,40 @@ void MainWindow::on_peer_disconnect()
     std::cout << "peer : " << socket->objectName().toStdString() << " disconnected !" << std::endl;
 
     connected--;
-    connections.erase( std::find_if(connections.begin(), connections.end(), [=]( auto x){ return x->objectName() == socket->objectName();} ));
 
-    delete socket;
+    auto it = std::find_if(connections.begin(), connections.end(), [=]( auto x){ return x->socket->objectName() == socket->objectName();} );
+
+    delete  *it;
+
+    connections.erase( it );
 }
+
+void MainWindow::run_client(Client *client)
+{
+    while(client->is_running())
+    {
+        QByteArray data = client->socket->read(16);
+
+        if(!data.isEmpty())
+        {
+            if(!strcmp(data.data(), "UP")) tokenH_upload_file(client);
+            else if(!strcmp(data.data(), "DEL")) tokenH_delete_file(client);
+            else if(!strcmp(data.data(), "DOWN")) tokenH_download_file(client);
+            else std::cout << "wrong token : " << data.data() << std::endl;
+        }
+
+        for(auto & bc : client->broadcast_list )
+        {
+            client->socket->write(bc, sizeof(bc));
+            client->socket->waitForReadyRead(); // let client process msg form client is not important
+        }
+    }
+}
+
+void MainWindow::tokenH_upload_file(const Client *client)
+{
+    std::cout << "Upload form : "<< client->socket->socketDescriptor() << std::endl;
+}
+
+void MainWindow::tokenH_delete_file(const Client *client){}
+void MainWindow::tokenH_download_file(const Client *client){}
