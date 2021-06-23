@@ -5,9 +5,13 @@
 
 #include <windows.h>
 #include <winsock2.h>
+#include <winsock.h>
 
 #include <vector>
 #include <string>
+
+#include <thread>
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,6 +27,10 @@ public:
 
     SOCKET sock;
 
+    std::mutex active_transmition;
+    std::thread *th; // for idle server connection
+    bool is_running(){ return _running; }
+
     void connect_to_server();
     std::vector<std::string> get_current_files();
     void set_list_of_files( const std::vector<std::string>& file_list );
@@ -34,8 +42,10 @@ public slots:
     void delete_file();
     void download_file();
 
+    void handle_server_msg();
 
 private:
+    bool _running = true;
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

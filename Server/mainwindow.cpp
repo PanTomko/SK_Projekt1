@@ -40,7 +40,7 @@ void MainWindow::accept_new_connection()
     {
         Client *client = new Client{server.nextPendingConnection()};
         client->socket->setObjectName( QString::number(client->socket->socketDescriptor()) );
-        client->th = new std::thread( &Client::run, client );
+        client->th = new std::thread( &MainWindow::run_client, this, client );
 
         std::cout << "peer : " << client->socket->objectName().toStdString() << " connected !" << std::endl;
 
@@ -64,4 +64,23 @@ void MainWindow::on_peer_disconnect()
     delete  *it;
 
     connections.erase( it );
+}
+
+void MainWindow::run_client(Client *client)
+{
+    while(client->is_running())
+    {
+        QByteArray data = client->socket->read(16);
+
+
+        if(!data.isEmpty())
+        {
+            std::cout << data.count() << " : data :" << data.data() << std::endl;
+        }
+
+        for(auto & bc : client->broadcast_list )
+        {
+            // TODO : implement broadcast
+        }
+    }
 }

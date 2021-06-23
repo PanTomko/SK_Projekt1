@@ -19,7 +19,7 @@ public:
     std::thread *th;
 
     bool is_running() { return _running; }
-    void run();
+
 
     Client();
     Client(QTcpSocket*socket);

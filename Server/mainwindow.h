@@ -31,6 +31,7 @@ public:
 
     void accept_new_connection();
     void on_peer_disconnect();
+    void run_client(Client *client);
 
     std::vector<std::thread> peer_thread;
     std::vector<Client*> connections;   // list of connected peers
