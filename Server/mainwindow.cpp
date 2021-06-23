@@ -32,6 +32,7 @@ void MainWindow::stop_server()
     for(auto & x : connections){
         x->socket->close();
         delete x->socket;
+        delete x;
     }
 }
 
