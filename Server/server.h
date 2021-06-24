@@ -15,6 +15,7 @@ public:
     void start();
 
     explicit Server(QObject *parent = nullptr);
+    std::vector<std::string> file_list;
 
 protected:
     void incomingConnection( qintptr handle ) override;
@@ -23,6 +24,7 @@ private:
     void on_client_disconnect(Client* client);
 
     std::vector<Client*> connected_peers;
+    bool delete_file(char filename[]);
 
     int _port;
 };

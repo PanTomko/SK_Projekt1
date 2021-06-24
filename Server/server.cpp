@@ -37,3 +37,19 @@ void Server::on_client_disconnect(Client* client)
     connected_peers.erase(std::find_if(connected_peers.begin(), connected_peers.end(),
                                        [=](auto x){return x->socketDescriptor == client->socketDescriptor;}));
 }
+
+bool Server::delete_file(char filename[])
+{
+    if (remove(filename) != 0){
+        perror("File deletion failed");
+        return false;
+    }
+    else {
+        std::vector<std::string>::iterator position = std::find(file_list.begin(), file_list.end(), filename);
+        if (position != file_list.end()) {
+            file_list.erase(position);
+        }
+        std::cout << "File deleted successfully" << std::endl;
+        return true;
+    }
+}
