@@ -1,32 +1,32 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <QObject>
 #include <QTcpSocket>
-#include <vector>
+#include <QThread>
 
-#include <thread>
-#include <mutex>
-
-class Client
+class Client : public QThread
 {
+    Q_OBJECT
 public:
-
-    std::vector<char[271]>broadcast_list;
-   // std::mutex active_transmission;
-
     QTcpSocket *socket;
-    std::thread *th;
+    qintptr socketDescriptor;
 
-    bool is_running() { return _running; }
+    void run() override;
 
-
-    Client();
-    Client(QTcpSocket*socket);
-
+    Client(qintptr socketDescriptor, QObject *parent = 0);
     virtual ~Client();
+
+signals:
+    void error(QTcpSocket::SocketError socketerror);
+    void clientReady(Client* client);
+    void clientDisconected(Client* client);
+
+public slots:
+    void readyRead();
+    void disconnected();
+
 private:
-    bool _running = true;
+    void ini();
 };
 
 #endif // CLIENT_H

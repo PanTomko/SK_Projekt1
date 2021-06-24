@@ -1,15 +1,15 @@
-#include "mainwindow.h"
+#include "server.h"
+
+#include <iostream>
 
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
 
-    w.show();
-    w.start_server();
-    w.connect(&w.server, &QTcpServer::newConnection, &w, &MainWindow::accept_new_connection);
+    Server server;
+    server.start();
 
     return a.exec();
 }

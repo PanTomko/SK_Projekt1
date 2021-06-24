@@ -41,7 +41,7 @@ void MainWindow::connect_to_server()
 
     // server info
     SOCKADDR_IN addr;
-    addr.sin_port = htons(2644);
+    addr.sin_port = htons(2466);
     addr.sin_family = AF_INET;
     addr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
 
