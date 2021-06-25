@@ -61,6 +61,15 @@ void MainWindow::connect_to_server()
 
 void MainWindow::set_current_file_list()
 {
+}
+
+void MainWindow::sendToken(TOKEN token)
+{
+    ::send(sock, (char*)&token, sizeof(TOKEN), 0);
+}
+
+TOKEN MainWindow::recvToken()
+{
 
 }
 
@@ -69,8 +78,9 @@ void MainWindow::upload_file()
     read_socket = NULL;
     active_transmition.lock();
 
-    char buffer[16] = "UP";
-    ::send(sock, buffer, sizeof(buffer), 0);
+    std::cout << "up" << std::endl;
+
+    sendToken(TOKEN::TOKEN_UPLOAD);
 
     active_transmition.unlock();
     read_socket = sock;

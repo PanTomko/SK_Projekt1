@@ -1,8 +1,11 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "token.h"
+
 #include <QTcpSocket>
 #include <QThread>
+#include <QFile>
 
 class Client : public QThread
 {
@@ -10,6 +13,8 @@ class Client : public QThread
 public:
     QTcpSocket *socket;
     qintptr socketDescriptor;
+
+    bool is_running(){ return _running;};
 
     void run() override;
 
@@ -21,12 +26,16 @@ signals:
     void clientReady(Client* client);
     void clientDisconected(Client* client);
 
+    void tokenRecived(Client* client, TOKEN token);
+
 public slots:
     void readyRead();
     void disconnected();
 
 private:
     void ini();
+
+    bool _running;
 };
 
 #endif // CLIENT_H
