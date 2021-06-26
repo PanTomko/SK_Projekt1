@@ -13,6 +13,11 @@ class Server : public QTcpServer
 public:
 
     void start();
+    void handleClientToken(Client* client, TOKEN token);
+
+    void handleToken_UPLOAD(Client* client);
+    void handleToken_DELETE(Client* client);
+    void handleToken_DOWNLOAD(Client* client);
 
     explicit Server(QObject *parent = nullptr);
     std::vector<std::string> file_list;

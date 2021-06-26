@@ -11,11 +11,14 @@ CONFIG += c++11
 # WinSock
 LIBS += -lws2_32
 
+INCLUDEPATH += ../Shared/
+
 SOURCES += \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
+    ../Shared/token.h \
     mainwindow.h
 
 FORMS += \

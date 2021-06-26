@@ -3,15 +3,18 @@
 
 #include <QMainWindow>
 
-#include <windows.h>
 #include <winsock2.h>
 #include <winsock.h>
+
+#include <windows.h>
 
 #include <vector>
 #include <string>
 
 #include <thread>
 #include <mutex>
+
+#include "token.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -40,6 +43,9 @@ public:
 
     void disconnect_form_server();
     void set_current_file_list();
+
+    void sendToken( TOKEN token );
+    TOKEN recvToken();
 
 public slots:
     void upload_file();
