@@ -5,6 +5,9 @@
 
 #include <vector>
 
+// windows only
+#include <direct.h>
+
 #include <QTcpServer>
 
 class Server : public QTcpServer
@@ -18,6 +21,8 @@ public:
     void handleToken_UPLOAD(Client* client);
     void handleToken_DELETE(Client* client);
     void handleToken_DOWNLOAD(Client* client);
+
+    void broadcast(TOKEN token, std::string file_name);
 
     explicit Server(QObject *parent = nullptr);
     std::vector<std::string> file_list;
