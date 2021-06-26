@@ -8,6 +8,8 @@ void Server::start()
         std::cout << "server start." << std::endl;
     else
         std::cout << "server failed start : " << errorString().toStdString() << '.' << std::endl;
+
+    _mkdir("data"); // creating directory if such don't exist
 }
 
 void Server::handleClientToken(Client *client, TOKEN token)
@@ -22,8 +24,6 @@ void Server::handleClientToken(Client *client, TOKEN token)
             std::cout << "client " << client->socketDescriptor << " wrong token." << std::endl;
             break;
     }
-
-    //client->socket->readAll(); // clear
 }
 
 void Server::handleToken_UPLOAD(Client *client)
@@ -42,6 +42,22 @@ void Server::handleToken_UPLOAD(Client *client)
     std::cout << "file size : " << file_size << '.' << std::endl;
 
     client->writeTOKEN(TOKEN::TOKEN_OK);
+    client->socket->flush(); // this is so QT dont wait for its turn in event loop
+
+    QFile file( "data/" + file_name );
+    file.open(QIODevice::WriteOnly);
+
+    while(file_size != 0)
+    {
+        client->socket->waitForReadyRead();
+        QByteArray data = client->socket->readAll();
+        file.write(data.data(), data.size());
+        file_size -= data.size();
+        std::cout << file_size << std::endl;
+    }
+
+    file.close();
+    file_list.push_back(file_name.toStdString());
 }
 
 void Server::handleToken_DELETE(Client *client)
@@ -52,6 +68,14 @@ void Server::handleToken_DELETE(Client *client)
 void Server::handleToken_DOWNLOAD(Client *client)
 {
 
+}
+
+void Server::broadcast(TOKEN token, std::string file_name)
+{
+    for(auto client : connected_peers )
+    {
+        //client->broadcast_list
+    }
 }
 
 Server::Server(QObject *parent) : QTcpServer(parent)

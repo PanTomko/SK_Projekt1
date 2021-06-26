@@ -63,14 +63,8 @@ void Client::run()
 
 void Client::readyRead()
 {
-    std::cout << "E" << std::endl;
     TOKEN token = readTOKEN();
-    switch (token) {
-        case TOKEN::TOKEN_UPLOAD: emit tokenRecived(this, token); break;
-        case TOKEN::TOKEN_DELETE: emit tokenRecived(this, token); break;
-        case TOKEN::TOKEN_DOWNLOAD: emit tokenRecived(this, token); break;
-        default: emit tokenRecived(this, token); break;
-    }
+    emit tokenRecived(this, token);
 }
 
 void Client::disconnected()

@@ -71,21 +71,18 @@ void MainWindow::sendToken(TOKEN token)
 TOKEN MainWindow::recvToken()
 {
     TOKEN token;
-    std::cout << "rec start." << std::endl;
     recv( sock, (char*)&token, sizeof(TOKEN), 0 );
     return token;
 }
 
 void MainWindow::upload_file()
 {
-    pthread_cancel(th->native_handle()); // is is working ?
-
     std::cout << "upload start." << std::endl;
 
     sendToken(TOKEN::TOKEN_UPLOAD);
-    TOKEN re = recvToken();
-    if( re != TOKEN::TOKEN_OK){
-        std::cout << "upload abort." << (int)re << std::endl;
+
+    if( recvToken() != TOKEN::TOKEN_OK){
+        std::cout << "upload abort." << std::endl;
         return;
     }
 
@@ -106,7 +103,7 @@ void MainWindow::upload_file()
     std::cout << "upload stage 2. " << file_name << std::endl;
 
     // wait
-    if(recvToken() == TOKEN::TOKEN_ABORT){
+    if( recvToken() != TOKEN::TOKEN_OK){
         std::cout << "upload abort." << std::endl;
         return;
     }
@@ -118,7 +115,7 @@ void MainWindow::upload_file()
     std::cout << "upload stage 3. " << file.size() << std::endl;
 
     // wait
-    if(recvToken() == TOKEN::TOKEN_ABORT){
+    if( recvToken() != TOKEN::TOKEN_OK){
         std::cout << "upload abort." << std::endl;
         return;
     }
@@ -127,22 +124,36 @@ void MainWindow::upload_file()
 
     // UPLOAD FILE
 
+    while (file_size != 0)
+    {
+        QByteArray data = file.read(1024*4);
+        int s = 0;
+        while(s != data.size()){
+            s += ::send(sock, data.data() + s, data.size() - s, 0);
+        }
+        file_size -= s;
+    }
+
+    std::cout << "upload stage 5." << std::endl;
+
     file.close();
     read_socket = true;
 }
 
 void MainWindow::delete_file()
 {
-
+    //
+    read_socket = true;
 }
 
 void MainWindow::download_file()
 {
+    //
+    read_socket = true;
 }
 
 void MainWindow::handle_server_msg()
 {
-    char buffer[271];
     while(is_running())
     {
         if(!read_socket) continue; // skip locking if socket is not active
@@ -152,6 +163,10 @@ void MainWindow::handle_server_msg()
         if(token != TOKEN::TOKEN_UPLOADED ) // non brodcast token
         {
             read_socket = false;
+        }
+        else
+        {
+            //
         }
     }
 }
