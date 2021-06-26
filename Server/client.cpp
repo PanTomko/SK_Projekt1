@@ -63,6 +63,7 @@ void Client::run()
 
 void Client::readyRead()
 {
+    std::cout << "E" << std::endl;
     TOKEN token = readTOKEN();
     switch (token) {
         case TOKEN::TOKEN_UPLOAD: emit tokenRecived(this, token); break;
