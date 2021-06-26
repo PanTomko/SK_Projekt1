@@ -46,13 +46,13 @@ void MainWindow::connect_to_server()
     addr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
 
     // set up
-    DWORD timeout = 1 * 1000;
-    ::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof timeout);
+    //DWORD timeout = 1 * 1000;
+    //::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof timeout);
 
     if(::connect(sock, (const sockaddr *)&addr, sizeof(addr)) != 0)
         std::cout << "Error connect !" << std::endl;
 
-    read_socket = sock;
+    read_socket = true;
 
     th = new std::thread( &MainWindow::handle_server_msg, this );
 
@@ -71,43 +71,73 @@ void MainWindow::sendToken(TOKEN token)
 TOKEN MainWindow::recvToken()
 {
     TOKEN token;
+    std::cout << "rec start." << std::endl;
     recv( sock, (char*)&token, sizeof(TOKEN), 0 );
     return token;
 }
 
 void MainWindow::upload_file()
 {
-    read_socket = NULL;
-    active_transmition.lock();
+    pthread_cancel(th->native_handle()); // is is working ?
 
-    std::cout << "up" << std::endl;
+    std::cout << "upload start." << std::endl;
 
     sendToken(TOKEN::TOKEN_UPLOAD);
+    TOKEN re = recvToken();
+    if( re != TOKEN::TOKEN_OK){
+        std::cout << "upload abort." << (int)re << std::endl;
+        return;
+    }
 
-    active_transmition.unlock();
-    read_socket = sock;
+    std::cout << "upload stage 1." << std::endl;
+
+    QString path = QFileDialog::getOpenFileName(this, "Select file.", NULL, NULL);
+
+    QFileInfo info(path);
+
+    QFile file(path);
+    file.open(QIODevice::ReadOnly);
+
+    // send file_name
+    char file_name[255];
+    strcpy(file_name, info.fileName().toStdString().c_str());
+    ::send(sock, file_name, 255, 0);
+
+    std::cout << "upload stage 2. " << file_name << std::endl;
+
+    // wait
+    if(recvToken() == TOKEN::TOKEN_ABORT){
+        std::cout << "upload abort." << std::endl;
+        return;
+    }
+
+    // send file size
+    qint64 file_size = file.size();
+    ::send(sock, (char*)&file_size, sizeof(qint64), 0);
+
+    std::cout << "upload stage 3. " << file.size() << std::endl;
+
+    // wait
+    if(recvToken() == TOKEN::TOKEN_ABORT){
+        std::cout << "upload abort." << std::endl;
+        return;
+    }
+
+    std::cout << "upload stage 4." << std::endl;
+
+    // UPLOAD FILE
+
+    file.close();
+    read_socket = true;
 }
 
 void MainWindow::delete_file()
 {
-    read_socket = NULL;
-    active_transmition.lock();
 
-    // code
-
-    active_transmition.unlock();
-    read_socket = sock;
 }
 
 void MainWindow::download_file()
 {
-    read_socket = NULL;
-    active_transmition.lock();
-
-    // code
-
-    active_transmition.unlock();
-    read_socket = sock;
 }
 
 void MainWindow::handle_server_msg()
@@ -115,11 +145,13 @@ void MainWindow::handle_server_msg()
     char buffer[271];
     while(is_running())
     {
-        recv( read_socket, buffer, 271, 0 );
+        if(!read_socket) continue; // skip locking if socket is not active
 
-        if(read_socket == NULL) continue; // skip locking if socket is not active
+        TOKEN token = recvToken();
 
-        active_transmition.lock();
-        active_transmition.unlock();
+        if(token != TOKEN::TOKEN_UPLOADED ) // non brodcast token
+        {
+            read_socket = false;
+        }
     }
 }

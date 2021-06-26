@@ -22,11 +22,26 @@ void Server::handleClientToken(Client *client, TOKEN token)
             std::cout << "client " << client->socketDescriptor << " wrong token." << std::endl;
             break;
     }
+
+    //client->socket->readAll(); // clear
 }
 
 void Server::handleToken_UPLOAD(Client *client)
 {
+    client->writeTOKEN(TOKEN::TOKEN_OK); // one for locking msg
+    client->writeTOKEN(TOKEN::TOKEN_OK); // one for update
 
+    client->socket->waitForReadyRead();
+    QString file_name = client->socket->read(255).data();
+    std::cout << "file name : " << file_name.toStdString() << '.' << std::endl;
+
+    client->writeTOKEN(TOKEN::TOKEN_OK);
+
+    client->socket->waitForReadyRead();
+    qint64 file_size = *(qint64*)client->socket->read(sizeof(qint64)).data();
+    std::cout << "file size : " << file_size << '.' << std::endl;
+
+    client->writeTOKEN(TOKEN::TOKEN_OK);
 }
 
 void Server::handleToken_DELETE(Client *client)

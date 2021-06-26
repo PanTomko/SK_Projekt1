@@ -7,6 +7,7 @@ enum class TOKEN : int {
     TOKEN_ERROR = 0,
     TOKEN_ABORT = 1,
     TOKEN_READY = 2,
+    TOKEN_OK    = 3,
 
     // server reviced
     TOKEN_UPLOAD      = 10,

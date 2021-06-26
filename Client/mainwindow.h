@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFile>
+#include <QFileDialog>
 
 #include <winsock2.h>
 #include <winsock.h>
@@ -9,6 +11,7 @@
 #include <windows.h>
 
 #include <vector>
+#include <queue>
 #include <string>
 
 #include <thread>
@@ -32,7 +35,7 @@ public:
 
     std::mutex active_transmition;
 
-    SOCKET read_socket;             // socket for idle connection
+    bool read_socket;
     std::thread *th;                // for idle server connection
 
     bool is_running(){ return _running; }
@@ -43,6 +46,8 @@ public:
 
     void disconnect_form_server();
     void set_current_file_list();
+
+    std::queue<TOKEN>tokens;
 
     void sendToken( TOKEN token );
     TOKEN recvToken();
