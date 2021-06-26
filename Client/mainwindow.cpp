@@ -70,7 +70,9 @@ void MainWindow::sendToken(TOKEN token)
 
 TOKEN MainWindow::recvToken()
 {
-
+   TOKEN token;
+   recv( sock, (char*)&token, sizeof(TOKEN), 0 );
+   return token;
 }
 
 void MainWindow::upload_file()
