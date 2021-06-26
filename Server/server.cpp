@@ -12,16 +12,31 @@ void Server::start()
 
 void Server::handleClientToken(Client *client, TOKEN token)
 {
-    std::cout << "client " << client->socketDescriptor << " token : " << (int)token << '.' << std::endl;
+    std::cout << "(server) client " << client->socketDescriptor << " token : " << (int)token << '.' << std::endl;
 
     switch (token) {
-        case TOKEN::TOKEN_UPLOAD:   handleToken_UPLOAD(client->socket);     break;
-        case TOKEN::TOKEN_DELETE:   handleToken_DELETE(client->socket);     break;
-        case TOKEN::TOKEN_DOWNLOAD: handleToken_DOWNLOAD(client->socket);   break;
+        case TOKEN::TOKEN_UPLOAD:   handleToken_UPLOAD(client);     break;
+        case TOKEN::TOKEN_DELETE:   handleToken_DELETE(client);     break;
+        case TOKEN::TOKEN_DOWNLOAD: handleToken_DOWNLOAD(client);   break;
         default:
             std::cout << "client " << client->socketDescriptor << " wrong token." << std::endl;
             break;
     }
+}
+
+void Server::handleToken_UPLOAD(Client *client)
+{
+
+}
+
+void Server::handleToken_DELETE(Client *client)
+{
+
+}
+
+void Server::handleToken_DOWNLOAD(Client *client)
+{
+
 }
 
 Server::Server(QObject *parent) : QTcpServer(parent)

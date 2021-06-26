@@ -37,6 +37,11 @@ TOKEN Client::readTOKEN()
     return toToken(data);
 }
 
+void Client::writeTOKEN(TOKEN token)
+{
+    socket->write((char*)&token, sizeof(TOKEN));
+}
+
 void Client::run()
 {
     std::cout << "client run : " << socketDescriptor << '.' << std::endl;
@@ -45,7 +50,11 @@ void Client::run()
 
     while(is_running())
     {
-        // TODO : implement broadcast
+        for(auto & broadcast : broadcast_list)
+        {
+            socket->write(broadcast, sizeof(broadcast));
+        }
+
         socket->waitForDisconnected(0);
     }
 

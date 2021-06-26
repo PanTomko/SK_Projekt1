@@ -7,6 +7,8 @@
 #include <QThread>
 #include <QFile>
 
+#include <vector>
+
 class Client : public QThread
 {
     Q_OBJECT
@@ -14,9 +16,14 @@ public:
     QTcpSocket *socket;
     qintptr socketDescriptor;
 
+    TOKEN readTOKEN();
+    void writeTOKEN(TOKEN token);
+
     bool is_running(){ return _running;};
 
     void run() override;
+
+    std::vector<char[255 + sizeof(TOKEN)]> broadcast_list;
 
     Client(qintptr socketDescriptor, QObject *parent = 0);
     virtual ~Client();
@@ -34,7 +41,6 @@ public slots:
 
 private:
     void ini();
-
     bool _running;
 };
 
