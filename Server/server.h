@@ -22,7 +22,7 @@ public:
     void handleToken_DELETE(Client* client);
     void handleToken_DOWNLOAD(Client* client);
 
-    void broadcast(TOKEN token, std::string file_name);
+    void broadcast(TOKEN token, std::string msg);
 
     explicit Server(QObject *parent = nullptr);
     std::vector<std::string> file_list;

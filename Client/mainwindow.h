@@ -47,7 +47,12 @@ public:
     void disconnect_form_server();
     void set_current_file_list();
 
+    void handleToken_UPLOADED();
+    void handleToken_DELETED();
+
     std::queue<TOKEN>tokens;
+
+    void sendFile(QFile *file);
 
     void sendToken( TOKEN token );
     TOKEN recvToken();
