@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QFile>
 #include <QFileDialog>
+#include <QMessageBox>
 
 #include <winsock2.h>
 #include <winsock.h>
@@ -53,6 +54,7 @@ public:
     std::queue<TOKEN>tokens;
 
     void sendFile(QFile *file);
+    QFile recvFile();
 
     void sendToken( TOKEN token );
     TOKEN recvToken();
