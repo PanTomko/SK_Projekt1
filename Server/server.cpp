@@ -10,6 +10,7 @@ void Server::start()
         std::cout << "server failed start : " << errorString().toStdString() << '.' << std::endl;
 
     _mkdir("data"); // creating directory if such don't exist
+    setFileList();
 }
 
 void Server::handleClientToken(Client *client, TOKEN token)
@@ -65,6 +66,23 @@ void Server::handleToken_UPLOAD(Client *client)
 
 void Server::handleToken_DELETE(Client *client)
 {
+    client->writeTOKEN(TOKEN::TOKEN_OK); // one for locking msg
+    client->writeTOKEN(TOKEN::TOKEN_OK); // one for update
+
+    client->socket->waitForReadyRead();
+    char file_name[255];
+    client->socket->read(file_name, 255);
+
+    if(fileExist(file_name))
+    {
+        delete_file(file_name);
+        broadcast(TOKEN::TOKEN_DELETED, file_name);
+    }
+    else
+    {
+        client->writeTOKEN(TOKEN::TOKEN_ABORT);
+        std::cout << "file asked for doesn't exist." << std::endl;
+    }
 
 }
 
@@ -84,7 +102,7 @@ void Server::handleToken_DOWNLOAD(Client *client)
     else
     {
         client->writeTOKEN(TOKEN::TOKEN_ABORT);
-        std::cout << "file asked for don't exist." << std::endl;
+        std::cout << "file asked for doesn't exist." << std::endl;
     }
 
 
@@ -111,6 +129,14 @@ void Server::handleToken_DOWNLOAD(Client *client)
     }
 
     file.close();
+}
+
+void Server::onClientReady(Client *client)
+{
+    client->socket->write((const char*)file_list.size());
+    for (std::string& i : file_list){
+        client->socket->write(QByteArray::fromStdString(i));
+    }
 }
 
 void Server::broadcast(TOKEN token, std::string msg)
@@ -148,6 +174,7 @@ void Server::incomingConnection(qintptr handle)
     connect(client, SIGNAL(finished()), client, SLOT(deleteLater()));
     connect(client, &Client::clientDisconected, this, &Server::on_client_disconnect);
     connect(client, &Client::tokenRecived, this, &Server::handleClientToken, Qt::DirectConnection);
+    connect(client, &Client::socketReady, this, &Server::onClientReady, Qt::DirectConnection);
 
     connected_peers.push_back(client);
 
@@ -164,7 +191,10 @@ void Server::on_client_disconnect(Client* client)
 
 bool Server::delete_file(char filename[])
 {
-    if (remove(filename) != 0){
+    char path[260] = "data\\";
+    strcat(path, filename);
+
+    if (remove(path) != 0){
         perror("File deletion failed");
         return false;
     }
@@ -175,5 +205,17 @@ bool Server::delete_file(char filename[])
         }
         std::cout << "File deleted successfully" << std::endl;
         return true;
+    }
+}
+
+void Server::setFileList()
+{
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir ("data\\")) != NULL) {
+      while ((ent = readdir (dir)) != NULL) {
+           file_list.push_back(ent->d_name);
+      }
+      closedir (dir);
     }
 }

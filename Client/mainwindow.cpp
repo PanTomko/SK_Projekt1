@@ -57,6 +57,19 @@ void MainWindow::connect_to_server()
 
 void MainWindow::set_current_file_list()
 {
+    char recvbuf[1024];
+    int list_length = ::recv(sock, recvbuf, 255, 0);
+    while(list_length != 0)
+    {
+        char bufname[255];
+        QString file_name;
+        ::recv(sock, bufname, 255, 0);
+        file_name.push_back(bufname);
+        std::string name = file_name.toStdString();
+        file_list.push_back(name);
+        file_name.clear();
+        list_length--;
+    }
 }
 
 void MainWindow::sendToken(TOKEN token)
@@ -117,6 +130,37 @@ void MainWindow::upload_file()
 
 void MainWindow::delete_file()
 {
+    std::cout << "deletion start." << std::endl;
+
+    QList<QListWidgetItem*> selected = ui->listWidget->selectedItems();
+
+    if(selected.empty()){
+        QMessageBox msg_box;
+        msg_box.setText("No file was selected");
+        msg_box.exec();
+        return;
+    }
+
+    sendToken(TOKEN::TOKEN_DELETE);
+
+    // wait
+    if( recvToken() != TOKEN::TOKEN_OK){
+        std::cout << "deletion abort." << std::endl;
+        return;
+    }
+
+    // send file_name
+    char file_name[255];
+    strcpy(file_name, selected[0]->text().toStdString().c_str());
+    ::send(sock, file_name, 255, 0);
+
+    // wait
+    if( recvToken() != TOKEN::TOKEN_OK){
+        std::cout << "deletion abort." << std::endl;
+        return;
+    }
+
+    std::cout << "end." << std::endl;
     read_socket = true;
 }
 
@@ -142,7 +186,7 @@ void MainWindow::download_file()
 
     // wait
     if( recvToken() != TOKEN::TOKEN_OK){
-        std::cout << "upload abort." << std::endl;
+        std::cout << "download abort." << std::endl;
         return;
     }
 
@@ -153,7 +197,7 @@ void MainWindow::download_file()
 
     // wait
     if( recvToken() != TOKEN::TOKEN_OK){
-        std::cout << "upload abort." << std::endl;
+        std::cout << "download abort." << std::endl;
         return;
     }
 
