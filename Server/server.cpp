@@ -214,8 +214,9 @@ void Server::setFileList()
     struct dirent *ent;
     if ((dir = opendir ("data\\")) != NULL) {
       while ((ent = readdir (dir)) != NULL) {
-           file_list.push_back(ent->d_name);
+          file_list.push_back(ent->d_name);
       }
       closedir (dir);
     }
+    file_list.erase(file_list.begin(),file_list.begin()+2);
 }

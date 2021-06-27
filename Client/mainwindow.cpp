@@ -50,7 +50,7 @@ void MainWindow::connect_to_server()
 
     read_socket = true;
 
-    set_current_file_list();
+    //set_current_file_list();
 
     th = new std::thread( &MainWindow::handle_server_msg, this );   
 }
