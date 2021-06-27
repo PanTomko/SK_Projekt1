@@ -16,6 +16,7 @@ SOURCES += \
     server.cpp
 
 HEADERS += \
+    ../Shared/broadcast.h \
     ../Shared/token.h \
     client.h \
     server.h

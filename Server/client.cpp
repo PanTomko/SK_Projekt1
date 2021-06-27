@@ -25,6 +25,7 @@ void Client::ini()
         return;
     }
 
+
     connect(socket, &QAbstractSocket::readyRead, this, &Client::readyRead, Qt::DirectConnection);
     connect(socket, &QAbstractSocket::disconnected, this, &Client::disconnected, Qt::DirectConnection);
 
@@ -42,18 +43,30 @@ void Client::writeTOKEN(TOKEN token)
     socket->write((char*)&token, sizeof(TOKEN));
 }
 
+void Client::writeBroadcast(Broadcast *broadcast)
+{
+    socket->write((char*)&broadcast->token, sizeof(TOKEN));
+    socket->write(broadcast->msg, 255);
+    socket->flush();
+}
+
 void Client::run()
 {
     std::cout << "client run : " << socketDescriptor << '.' << std::endl;
 
     ini();
 
+
     while(is_running())
     {
+        //mutex_broadcast_list.lock();
         for(auto & broadcast : broadcast_list)
         {
-            socket->write(broadcast, sizeof(broadcast));
+            writeBroadcast(&broadcast);
         }
+
+        broadcast_list.clear();
+        //mutex_broadcast_list.unlock();
 
         socket->waitForDisconnected(0);
     }

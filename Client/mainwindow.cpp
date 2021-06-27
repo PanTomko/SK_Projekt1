@@ -81,17 +81,14 @@ void MainWindow::upload_file()
 
     sendToken(TOKEN::TOKEN_UPLOAD);
 
+    // wait
     if( recvToken() != TOKEN::TOKEN_OK){
         std::cout << "upload abort." << std::endl;
         return;
     }
 
-    std::cout << "upload stage 1." << std::endl;
-
     QString path = QFileDialog::getOpenFileName(this, "Select file.", NULL, NULL);
-
     QFileInfo info(path);
-
     QFile file(path);
     file.open(QIODevice::ReadOnly);
 
@@ -99,8 +96,6 @@ void MainWindow::upload_file()
     char file_name[255];
     strcpy(file_name, info.fileName().toStdString().c_str());
     ::send(sock, file_name, 255, 0);
-
-    std::cout << "upload stage 2. " << file_name << std::endl;
 
     // wait
     if( recvToken() != TOKEN::TOKEN_OK){
@@ -112,29 +107,13 @@ void MainWindow::upload_file()
     qint64 file_size = file.size();
     ::send(sock, (char*)&file_size, sizeof(qint64), 0);
 
-    std::cout << "upload stage 3. " << file.size() << std::endl;
-
     // wait
     if( recvToken() != TOKEN::TOKEN_OK){
         std::cout << "upload abort." << std::endl;
         return;
     }
 
-    std::cout << "upload stage 4." << std::endl;
-
-    // UPLOAD FILE
-
-    while (file_size != 0)
-    {
-        QByteArray data = file.read(1024*4);
-        int s = 0;
-        while(s != data.size()){
-            s += ::send(sock, data.data() + s, data.size() - s, 0);
-        }
-        file_size -= s;
-    }
-
-    std::cout << "upload stage 5." << std::endl;
+    sendFile(&file);
 
     file.close();
     read_socket = true;
@@ -142,14 +121,39 @@ void MainWindow::upload_file()
 
 void MainWindow::delete_file()
 {
-    //
     read_socket = true;
 }
 
 void MainWindow::download_file()
 {
-    //
     read_socket = true;
+}
+
+void MainWindow::handleToken_UPLOADED()
+{
+    std::cout << "token : TOKEN_UPLOADED" << std::endl;
+    char file_name[255];
+    recv( sock, file_name, sizeof(file_name), 0 );
+    ui->listWidget->addItem(file_name);
+}
+
+void MainWindow::handleToken_DELETED()
+{
+    std::cout << "token : TOKEN_DELETED" << std::endl;
+}
+
+void MainWindow::sendFile(QFile *file)
+{
+    qintptr total_sended = file->size();
+    while (total_sended != 0)
+    {
+        QByteArray data = file->read(1024*4);
+        int sended = 0;
+        while(sended != data.size()){
+            sended += ::send(sock, data.data() + sended, data.size() - sended, 0);
+        }
+        total_sended -= sended;
+    }
 }
 
 void MainWindow::handle_server_msg()
@@ -166,7 +170,9 @@ void MainWindow::handle_server_msg()
         }
         else
         {
-            //
+            if(token == TOKEN::TOKEN_UPLOADED) handleToken_UPLOADED();
+            else if(token == TOKEN::TOKEN_DELETED) handleToken_DELETED();
+            else std::cout << "wrong  token." << std::endl;
         }
     }
 }

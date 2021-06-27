@@ -58,6 +58,8 @@ void Server::handleToken_UPLOAD(Client *client)
 
     file.close();
     file_list.push_back(file_name.toStdString());
+
+    broadcast(TOKEN::TOKEN_UPLOADED, file_name.toStdString());
 }
 
 void Server::handleToken_DELETE(Client *client)
@@ -70,11 +72,15 @@ void Server::handleToken_DOWNLOAD(Client *client)
 
 }
 
-void Server::broadcast(TOKEN token, std::string file_name)
+void Server::broadcast(TOKEN token, std::string msg)
 {
     for(auto client : connected_peers )
     {
-        //client->broadcast_list
+        Broadcast broadcast;
+        broadcast.token = token;
+        strcpy(broadcast.msg, msg.c_str());
+
+        client->broadcast_list.push_back(broadcast);
     }
 }
 
