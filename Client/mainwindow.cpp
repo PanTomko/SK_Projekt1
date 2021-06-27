@@ -50,26 +50,33 @@ void MainWindow::connect_to_server()
 
     read_socket = true;
 
-    //set_current_file_list();
+    set_current_file_list();
 
     th = new std::thread( &MainWindow::handle_server_msg, this );   
 }
 
 void MainWindow::set_current_file_list()
 {
-    char recvbuf[1024];
-    int list_length = ::recv(sock, recvbuf, 255, 0);
-    while(list_length != 0)
+    long size;
+    recv(sock, (char*)size, sizeof(long), 0);
+    std::cout << "file_size : " << size << '.' << std::endl;
+
+    QString file_name = "file_list.txt";
+    QFile file(file_name);
+    file.open(QIODevice::WriteOnly);
+
+    std::string file_size;
+
+    while(size != 0)
     {
-        char bufname[255];
-        QString file_name;
-        ::recv(sock, bufname, 255, 0);
-        file_name.push_back(bufname);
-        std::string name = file_name.toStdString();
-        file_list.push_back(name);
-        file_name.clear();
-        list_length--;
+        std::string packet;
+        recv( sock, file_size.data(), 255, 0);
+        file.write(file_size.data());
+        ui->listWidget->addItem(file_size.data());
+        size -= 1;
     }
+
+    file.close();
 }
 
 void MainWindow::sendToken(TOKEN token)
@@ -235,6 +242,10 @@ void MainWindow::handleToken_UPLOADED()
 void MainWindow::handleToken_DELETED()
 {
     std::cout << "token : TOKEN_DELETED" << std::endl;
+    char file_name[255];
+    recv( sock, file_name, sizeof(file_name), 0 );
+    //ui->listWidget->takeItem(ui->listWidget->row(QListWidgetItem()));
+
 }
 
 void MainWindow::sendFile(QFile *file)

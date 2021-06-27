@@ -133,9 +133,14 @@ void Server::handleToken_DOWNLOAD(Client *client)
 
 void Server::onClientReady(Client *client)
 {
-    client->socket->write((const char*)file_list.size());
+    long size = 0;
     for (std::string& i : file_list){
-        client->socket->write(QByteArray::fromStdString(i));
+        size = size + sizeof (i);
+    }
+    client->socket->write((const char*)size);
+    for (std::string& i : file_list){
+        //client->socket->write(QByteArray::fromStdString(i));
+        client->socket->write(i.data());
     }
 }
 
