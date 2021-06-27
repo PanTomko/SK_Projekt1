@@ -45,10 +45,6 @@ void MainWindow::connect_to_server()
     addr.sin_family = AF_INET;
     addr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
 
-    // set up
-    //DWORD timeout = 1 * 1000;
-    //::setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof timeout);
-
     if(::connect(sock, (const sockaddr *)&addr, sizeof(addr)) != 0)
         std::cout << "Error connect !" << std::endl;
 
@@ -126,6 +122,61 @@ void MainWindow::delete_file()
 
 void MainWindow::download_file()
 {
+    std::cout << "download start." << std::endl;
+
+    QList<QListWidgetItem*> selected = ui->listWidget->selectedItems();
+
+    if(selected.empty()){
+        QMessageBox msg_box;
+        msg_box.setText("No file was selected");
+        msg_box.exec();
+        return;
+    }
+
+    QString save_path = QFileDialog::getExistingDirectory(this, tr("Select save directory"),
+                                                          NULL,
+                                                          QFileDialog::ShowDirsOnly
+                                                          | QFileDialog::DontResolveSymlinks);
+
+    sendToken(TOKEN::TOKEN_DOWNLOAD);
+
+    // wait
+    if( recvToken() != TOKEN::TOKEN_OK){
+        std::cout << "upload abort." << std::endl;
+        return;
+    }
+
+    // send file_name
+    char file_name[255];
+    strcpy(file_name, selected[0]->text().toStdString().c_str());
+    ::send(sock, file_name, 255, 0);
+
+    // wait
+    if( recvToken() != TOKEN::TOKEN_OK){
+        std::cout << "upload abort." << std::endl;
+        return;
+    }
+
+    // receive file
+    qint64 file_size;
+    recv( sock, (char*)&file_size, sizeof(qint64), 0 );
+    std::cout << "file_size : " << file_size << '.' << std::endl;
+
+    std::cout << "saved at : " << (save_path + file_name).toStdString() << std::endl;
+    QFile file(save_path + "/" + file_name);
+    file.open(QIODevice::WriteOnly);
+
+    while(file_size != 0)
+    {
+        char packet[1024*4];
+        int received = recv( sock, packet, sizeof(1024*4), 0 );
+        file.write(packet, received);
+        file_size -= received;
+    }
+
+    file.close();
+
+    std::cout << "end." << std::endl;
     read_socket = true;
 }
 
@@ -154,6 +205,11 @@ void MainWindow::sendFile(QFile *file)
         }
         total_sended -= sended;
     }
+}
+
+QFile MainWindow::recvFile()
+{
+
 }
 
 void MainWindow::handle_server_msg()

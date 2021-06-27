@@ -24,6 +24,8 @@ public:
 
     void broadcast(TOKEN token, std::string msg);
 
+    bool fileExist(std::string file);
+
     explicit Server(QObject *parent = nullptr);
     std::vector<std::string> file_list;
 

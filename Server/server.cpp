@@ -70,7 +70,47 @@ void Server::handleToken_DELETE(Client *client)
 
 void Server::handleToken_DOWNLOAD(Client *client)
 {
+    client->writeTOKEN(TOKEN::TOKEN_OK); // one for locking msg
+    client->writeTOKEN(TOKEN::TOKEN_OK); // one for update
 
+    client->socket->waitForReadyRead();
+    char file_name[255];
+    client->socket->read(file_name, 255);
+
+    if(fileExist(file_name))
+    {
+        client->writeTOKEN(TOKEN::TOKEN_OK);
+    }
+    else
+    {
+        client->writeTOKEN(TOKEN::TOKEN_ABORT);
+        std::cout << "file asked for don't exist." << std::endl;
+    }
+
+
+    QFile file(tr("data/") + file_name);
+    file.open(QIODevice::ReadOnly);
+    qint64 file_size = file.size();
+
+    std:: cout << "file_path : " << (tr("data/") + file_name).toStdString() << '.' << std::endl;
+    std:: cout << "file_size : " << file_size << '.' << std::endl;
+
+    client->socket->write((char*)&file_size, sizeof(qint64));
+
+    while(file_size != 0)
+    {
+        QByteArray data = file.read(1024*4);
+        int sended = 0;
+        while(sended != data.size())
+        {
+            sended += client->socket->write(data.data() + sended, data.size() - sended);
+            client->socket->flush();
+            client->socket->waitForDisconnected(0); // if peer sudenly disconnect QT evenet loop will kick in
+        }
+        file_size -= sended;
+    }
+
+    file.close();
 }
 
 void Server::broadcast(TOKEN token, std::string msg)
@@ -83,6 +123,14 @@ void Server::broadcast(TOKEN token, std::string msg)
 
         client->broadcast_list.push_back(broadcast);
     }
+}
+
+bool Server::fileExist(std::string file)
+{
+    if(std::find(file_list.begin(), file_list.end(), file) != file_list.end())
+        return true;
+    else
+        return false;
 }
 
 Server::Server(QObject *parent) : QTcpServer(parent)
