@@ -56,17 +56,14 @@ void Client::run()
 
     ini();
 
-
     while(is_running())
     {
-        //mutex_broadcast_list.lock();
         for(auto & broadcast : broadcast_list)
         {
             writeBroadcast(&broadcast);
         }
 
         broadcast_list.clear();
-        //mutex_broadcast_list.unlock();
 
         socket->waitForDisconnected(0);
     }

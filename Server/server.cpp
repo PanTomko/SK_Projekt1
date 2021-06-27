@@ -53,13 +53,14 @@ void Server::handleToken_UPLOAD(Client *client)
         QByteArray data = client->socket->readAll();
         file.write(data.data(), data.size());
         file_size -= data.size();
-        std::cout << file_size << std::endl;
     }
 
     file.close();
     file_list.push_back(file_name.toStdString());
 
     broadcast(TOKEN::TOKEN_UPLOADED, file_name.toStdString());
+
+    std::cout << "upload done." << std::endl;
 }
 
 void Server::handleToken_DELETE(Client *client)
