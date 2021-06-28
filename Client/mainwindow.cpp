@@ -75,9 +75,10 @@ void MainWindow::set_current_file_list()
 
     QFile list("file_list.txt");
     list.open(QIODevice::ReadWrite | QIODevice::Text);
-    while (!list.atEnd())
+    QTextStream li(&list);
+    while (!li.atEnd())
        {
-          QString line = list.readLine();
+          QString line = li.readLine();
           ui->listWidget->addItem(line);
        }
     list.close();
