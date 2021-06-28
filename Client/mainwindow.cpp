@@ -249,7 +249,8 @@ void MainWindow::handleToken_DELETED()
     std::cout << "token : TOKEN_DELETED" << std::endl;
     char file_name[255];
     recv( sock, file_name, sizeof(file_name), 0 );
-    //ui->listWidget->takeItem(ui->listWidget->row(QListWidgetItem()));
+    auto itemsToRemove = ui->listWidget->findItems(file_name, Qt::MatchExactly);
+    for(auto item : itemsToRemove) delete item;
 
 }
 
