@@ -50,38 +50,22 @@ void MainWindow::connect_to_server()
 
     read_socket = true;
 
-    //set_current_file_list();
+    set_current_file_list();
 
     th = new std::thread( &MainWindow::handle_server_msg, this );   
 }
 
 void MainWindow::set_current_file_list()
 {
-    qint64 file_size;
-    recv( sock, (char*)&file_size, sizeof(qint64), 0 );
-    std::cout << "file_size : " << file_size << '.' << std::endl;
-
-    QFile file("file_list.txt");
-    file.open(QIODevice::ReadWrite | QIODevice::Text);
-
-    while(file_size != 0)
+    int size;
+    recv(sock, (char*)&size, sizeof(int), 0);
+    while (size != 0)
     {
-        char packet[1024*4];
-        int received = recv( sock, packet, sizeof(1024*4), 0 );
-        file.write(packet, received);
-        file_size -= received;
+        char name[255];
+        recv(sock, (char*)&name, 255, 0);
+        ui->listWidget->addItem(name);
+        size--;
     }
-    file.close();
-
-    QFile list("file_list.txt");
-    list.open(QIODevice::ReadWrite | QIODevice::Text);
-    QTextStream li(&list);
-    while (!li.atEnd())
-       {
-          QString line = li.readLine();
-          ui->listWidget->addItem(line);
-       }
-    list.close();
 }
 
 void MainWindow::sendToken(TOKEN token)
@@ -249,9 +233,9 @@ void MainWindow::handleToken_DELETED()
     std::cout << "token : TOKEN_DELETED" << std::endl;
     char file_name[255];
     recv( sock, file_name, sizeof(file_name), 0 );
-    auto itemsToRemove = ui->listWidget->findItems(file_name, Qt::MatchExactly);
-    for(auto item : itemsToRemove) delete item;
-
+    std::cout << file_name << std::endl;
+    qDeleteAll(ui->listWidget->findItems(QString::fromStdString(file_name), Qt::MatchFixedString));
+    ui->listWidget->update();
 }
 
 void MainWindow::sendFile(QFile *file)

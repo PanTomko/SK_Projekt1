@@ -72,18 +72,20 @@ void Server::handleToken_DELETE(Client *client)
     client->socket->waitForReadyRead();
     char file_name[255];
     client->socket->read(file_name, 255);
-
+    std::string name = file_name;
     if(fileExist(file_name))
     {
         delete_file(file_name);
-        broadcast(TOKEN::TOKEN_DELETED, file_name);
+        client->writeTOKEN(TOKEN::TOKEN_OK);
     }
     else
     {
         client->writeTOKEN(TOKEN::TOKEN_ABORT);
         std::cout << "file asked for doesn't exist." << std::endl;
     }
+    broadcast(TOKEN::TOKEN_DELETED, name);
 
+    std::cout << "deletion done." << std::endl;
 }
 
 void Server::handleToken_DOWNLOAD(Client *client)
@@ -133,29 +135,16 @@ void Server::handleToken_DOWNLOAD(Client *client)
 
 void Server::onClientReady(Client *client)
 {
-    QFile file("file_list.txt");
-    file.open(QIODevice::Text);
-    qint64 file_size = file.size();
+    int size = file_list.size();
+    client->socket->write((char*)&size, sizeof(int));
 
-    std:: cout << "file_path : " << (tr("file_list.txt")).toStdString() << '.' << std::endl;
-    std:: cout << "file_size : " << file_size << '.' << std::endl;
-
-    client->socket->write((char*)&file_size, sizeof(qint64));
-
-    while(file_size != 0)
+    for (auto & name : file_list)
     {
-        QByteArray data = file.read(1024*4);
-        int sended = 0;
-        while(sended != data.size())
-        {
-            sended += client->socket->write(data.data() + sended, data.size() - sended);
-            client->socket->flush();
-            client->socket->waitForDisconnected(0); // if peer sudenly disconnect QT evenet loop will kick in
-        }
-        file_size -= sended;
+        char buffer[255];
+        strcpy(buffer, name.c_str());
+        client->socket->write(buffer, sizeof (buffer));
     }
-
-    file.close();
+    client->socket->flush();
 }
 
 void Server::broadcast(TOKEN token, std::string msg)
@@ -193,7 +182,7 @@ void Server::incomingConnection(qintptr handle)
     connect(client, SIGNAL(finished()), client, SLOT(deleteLater()));
     connect(client, &Client::clientDisconected, this, &Server::on_client_disconnect);
     connect(client, &Client::tokenRecived, this, &Server::handleClientToken, Qt::DirectConnection);
-    //connect(client, &Client::socketReady, this, &Server::onClientReady, Qt::DirectConnection);
+    connect(client, &Client::socketReady, this, &Server::onClientReady, Qt::DirectConnection);
 
     connected_peers.push_back(client);
 
@@ -222,7 +211,6 @@ bool Server::delete_file(char filename[])
         if (position != file_list.end()) {
             file_list.erase(position);
         }
-        printListToFile();
         std::cout << "File deleted successfully" << std::endl;
         return true;
     }
@@ -239,18 +227,4 @@ void Server::setFileList()
       closedir (dir);
     }
     file_list.erase(file_list.begin(),file_list.begin()+2);
-    printListToFile();
-}
-
-void Server::printListToFile()
-{
-    QByteArray j;
-    QFile file("file_list.txt");
-    file.open(QIODevice::ReadWrite | QIODevice::Text);
-    for (auto &i : file_list){
-        std::cout << i << std::endl;
-        j = QByteArray::fromStdString(i+"\n");
-        file.write(j);
-    }
-    file.close();
 }

@@ -41,7 +41,6 @@ private:
     std::vector<Client*> connected_peers;
     bool delete_file(char filename[]);
     void setFileList();
-    void printListToFile();
 
     int _port;
 };
