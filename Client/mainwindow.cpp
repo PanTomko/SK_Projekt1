@@ -42,9 +42,9 @@ void MainWindow::connect_to_server()
 
     // server info
     SOCKADDR_IN addr;
-    addr.sin_port = htons(2466);
+    addr.sin_port = htons(1080);
     addr.sin_family = AF_INET;
-    addr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+    addr.sin_addr.S_un.S_addr = inet_addr("77.45.59.33");
 
     if(::connect(sock, (const sockaddr *)&addr, sizeof(addr)) != 0)
         std::cout << "Error connect !" << std::endl;
