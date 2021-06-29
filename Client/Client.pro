@@ -14,11 +14,13 @@ LIBS += -lws2_32
 INCLUDEPATH += ../Shared/
 
 SOURCES += \
+    boolguard.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     ../Shared/token.h \
+    boolguard.h \
     mainwindow.h
 
 FORMS += \

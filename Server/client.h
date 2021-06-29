@@ -36,6 +36,7 @@ signals:
     void error(QTcpSocket::SocketError socketerror);
     void clientReady(Client* client);
     void clientDisconected(Client* client);
+    void socketReady(Client* client);
 
     void tokenRecived(Client* client, TOKEN token);
 

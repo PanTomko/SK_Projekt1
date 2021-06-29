@@ -4,6 +4,8 @@
 #include "client.h"
 
 #include <vector>
+#include <string>
+#include <dirent.h>
 
 // windows only
 #include <direct.h>
@@ -21,6 +23,7 @@ public:
     void handleToken_UPLOAD(Client* client);
     void handleToken_DELETE(Client* client);
     void handleToken_DOWNLOAD(Client* client);
+    void onClientReady(Client* client);
 
     void broadcast(TOKEN token, std::string msg);
 
@@ -37,6 +40,7 @@ private:
 
     std::vector<Client*> connected_peers;
     bool delete_file(char filename[]);
+    void setFileList();
 
     int _port;
 };

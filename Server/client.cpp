@@ -25,6 +25,7 @@ void Client::ini()
         return;
     }
 
+    emit socketReady(this);
 
     connect(socket, &QAbstractSocket::readyRead, this, &Client::readyRead, Qt::DirectConnection);
     connect(socket, &QAbstractSocket::disconnected, this, &Client::disconnected, Qt::DirectConnection);

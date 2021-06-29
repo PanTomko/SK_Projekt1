@@ -69,5 +69,6 @@ public slots:
 private:
     bool _running = true;
     Ui::MainWindow *ui;
+    std::vector<std::string> file_list;
 };
 #endif // MAINWINDOW_H

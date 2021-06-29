@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "boolguard.h"
 
 #include <iostream>
 
@@ -57,6 +58,15 @@ void MainWindow::connect_to_server()
 
 void MainWindow::set_current_file_list()
 {
+    int size;
+    recv(sock, (char*)&size, sizeof(int), 0);
+    while (size != 0)
+    {
+        char name[255];
+        recv(sock, (char*)&name, 255, 0);
+        ui->listWidget->addItem(name);
+        size--;
+    }
 }
 
 void MainWindow::sendToken(TOKEN token)
@@ -73,6 +83,7 @@ TOKEN MainWindow::recvToken()
 
 void MainWindow::upload_file()
 {
+    BoolGuard guard(&read_socket);
     std::cout << "upload start." << std::endl;
 
     sendToken(TOKEN::TOKEN_UPLOAD);
@@ -112,16 +123,47 @@ void MainWindow::upload_file()
     sendFile(&file);
 
     file.close();
-    read_socket = true;
 }
 
 void MainWindow::delete_file()
 {
-    read_socket = true;
+    BoolGuard guard(&read_socket);
+    std::cout << "deletion start." << std::endl;
+
+    QList<QListWidgetItem*> selected = ui->listWidget->selectedItems();
+
+    if(selected.empty()){
+        QMessageBox msg_box;
+        msg_box.setText("No file was selected");
+        msg_box.exec();
+        return;
+    }
+
+    sendToken(TOKEN::TOKEN_DELETE);
+
+    // wait
+    if( recvToken() != TOKEN::TOKEN_OK){
+        std::cout << "deletion abort." << std::endl;
+        return;
+    }
+
+    // send file_name
+    char file_name[255];
+    strcpy(file_name, selected[0]->text().toStdString().c_str());
+    ::send(sock, file_name, 255, 0);
+
+    // wait
+    if( recvToken() != TOKEN::TOKEN_OK){
+        std::cout << "deletion abort." << std::endl;
+        return;
+    }
+
+    std::cout << "end." << std::endl;
 }
 
 void MainWindow::download_file()
 {
+    BoolGuard guard(&read_socket);
     std::cout << "download start." << std::endl;
 
     QList<QListWidgetItem*> selected = ui->listWidget->selectedItems();
@@ -142,7 +184,7 @@ void MainWindow::download_file()
 
     // wait
     if( recvToken() != TOKEN::TOKEN_OK){
-        std::cout << "upload abort." << std::endl;
+        std::cout << "download abort." << std::endl;
         return;
     }
 
@@ -153,7 +195,7 @@ void MainWindow::download_file()
 
     // wait
     if( recvToken() != TOKEN::TOKEN_OK){
-        std::cout << "upload abort." << std::endl;
+        std::cout << "download abort." << std::endl;
         return;
     }
 
@@ -177,7 +219,6 @@ void MainWindow::download_file()
     file.close();
 
     std::cout << "end." << std::endl;
-    read_socket = true;
 }
 
 void MainWindow::handleToken_UPLOADED()
@@ -185,12 +226,17 @@ void MainWindow::handleToken_UPLOADED()
     std::cout << "token : TOKEN_UPLOADED" << std::endl;
     char file_name[255];
     recv( sock, file_name, sizeof(file_name), 0 );
+    std::cout << file_name << std::endl;
     ui->listWidget->addItem(file_name);
 }
 
 void MainWindow::handleToken_DELETED()
 {
     std::cout << "token : TOKEN_DELETED" << std::endl;
+    char file_name[255];
+    recv( sock, file_name, sizeof(file_name), 0 );
+    auto itemsToRemove = ui->listWidget->findItems(file_name, Qt::MatchFixedString);
+    for(auto item : itemsToRemove) delete item;
 }
 
 void MainWindow::sendFile(QFile *file)
@@ -220,12 +266,14 @@ void MainWindow::handle_server_msg()
 
         TOKEN token = recvToken();
 
-        if(token != TOKEN::TOKEN_UPLOADED ) // non brodcast token
+        if(token != TOKEN::TOKEN_UPLOADED && token != TOKEN::TOKEN_DELETED) // non brodcast token
         {
             read_socket = false;
         }
         else
         {
+            std::cout << "token : " << (int)token << '.' << std::endl;
+
             if(token == TOKEN::TOKEN_UPLOADED) handleToken_UPLOADED();
             else if(token == TOKEN::TOKEN_DELETED) handleToken_DELETED();
             else std::cout << "wrong  token." << std::endl;
