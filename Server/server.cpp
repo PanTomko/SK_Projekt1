@@ -173,7 +173,7 @@ bool Server::fileExist(std::string file)
 Server::Server(QObject *parent) : QTcpServer(parent)
 {
     std::cout << "server ini." << std::endl;
-    _port = 2466;
+    _port = 1080;
 }
 
 void Server::incomingConnection(qintptr handle)
