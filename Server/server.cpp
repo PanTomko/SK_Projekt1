@@ -72,10 +72,11 @@ void Server::handleToken_DELETE(Client *client)
     client->socket->waitForReadyRead();
     char file_name[255];
     client->socket->read(file_name, 255);
-    std::string name = file_name;
+
     if(fileExist(file_name))
     {
         delete_file(file_name);
+
         client->writeTOKEN(TOKEN::TOKEN_OK);
     }
     else
@@ -84,7 +85,8 @@ void Server::handleToken_DELETE(Client *client)
         std::cout << "file asked for doesn't exist." << std::endl;
     }
     client->socket->flush();
-    broadcast(TOKEN::TOKEN_DELETED, name);
+    std::cout << "token file "<< file_name << std::endl;
+    broadcast(TOKEN::TOKEN_DELETED, file_name);
 
     std::cout << "deletion done." << std::endl;
 }

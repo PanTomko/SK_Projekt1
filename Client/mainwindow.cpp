@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "boolguard.h"
 
 #include <iostream>
 
@@ -82,6 +83,7 @@ TOKEN MainWindow::recvToken()
 
 void MainWindow::upload_file()
 {
+    BoolGuard guard(&read_socket);
     std::cout << "upload start." << std::endl;
 
     sendToken(TOKEN::TOKEN_UPLOAD);
@@ -121,11 +123,11 @@ void MainWindow::upload_file()
     sendFile(&file);
 
     file.close();
-    read_socket = true;
 }
 
 void MainWindow::delete_file()
 {
+    BoolGuard guard(&read_socket);
     std::cout << "deletion start." << std::endl;
 
     QList<QListWidgetItem*> selected = ui->listWidget->selectedItems();
@@ -157,11 +159,11 @@ void MainWindow::delete_file()
     }
 
     std::cout << "end." << std::endl;
-    read_socket = true;
 }
 
 void MainWindow::download_file()
 {
+    BoolGuard guard(&read_socket);
     std::cout << "download start." << std::endl;
 
     QList<QListWidgetItem*> selected = ui->listWidget->selectedItems();
@@ -217,7 +219,6 @@ void MainWindow::download_file()
     file.close();
 
     std::cout << "end." << std::endl;
-    read_socket = true;
 }
 
 void MainWindow::handleToken_UPLOADED()
@@ -266,12 +267,14 @@ void MainWindow::handle_server_msg()
 
         TOKEN token = recvToken();
 
-        if(token != TOKEN::TOKEN_UPLOADED ) // non brodcast token
+        if(token != TOKEN::TOKEN_UPLOADED && token != TOKEN::TOKEN_DELETED) // non brodcast token
         {
             read_socket = false;
         }
         else
         {
+            std::cout << "token : " << (int)token << '.' << std::endl;
+
             if(token == TOKEN::TOKEN_UPLOADED) handleToken_UPLOADED();
             else if(token == TOKEN::TOKEN_DELETED) handleToken_DELETED();
             else std::cout << "wrong  token." << std::endl;
