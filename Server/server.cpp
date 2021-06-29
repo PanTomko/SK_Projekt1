@@ -83,6 +83,7 @@ void Server::handleToken_DELETE(Client *client)
         client->writeTOKEN(TOKEN::TOKEN_ABORT);
         std::cout << "file asked for doesn't exist." << std::endl;
     }
+    client->socket->flush();
     broadcast(TOKEN::TOKEN_DELETED, name);
 
     std::cout << "deletion done." << std::endl;

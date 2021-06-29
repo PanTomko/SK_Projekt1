@@ -225,6 +225,7 @@ void MainWindow::handleToken_UPLOADED()
     std::cout << "token : TOKEN_UPLOADED" << std::endl;
     char file_name[255];
     recv( sock, file_name, sizeof(file_name), 0 );
+    std::cout << file_name << std::endl;
     ui->listWidget->addItem(file_name);
 }
 
@@ -234,8 +235,8 @@ void MainWindow::handleToken_DELETED()
     char file_name[255];
     recv( sock, file_name, sizeof(file_name), 0 );
     std::cout << file_name << std::endl;
-    qDeleteAll(ui->listWidget->findItems(QString::fromStdString(file_name), Qt::MatchFixedString));
-    ui->listWidget->update();
+    //qDeleteAll(ui->listWidget->findItems(QString::fromStdString(file_name), Qt::MatchFixedString));
+    //ui->listWidget->update();
 }
 
 void MainWindow::sendFile(QFile *file)
