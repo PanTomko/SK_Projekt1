@@ -76,7 +76,6 @@ void Server::handleToken_DELETE(Client *client)
     if(fileExist(file_name))
     {
         delete_file(file_name);
-
         client->writeTOKEN(TOKEN::TOKEN_OK);
     }
     else
